@@ -80,10 +80,10 @@ class MainActivity : ComponentActivity() {
                             SplashActivity(pokemonViewModel,navController)
                         }
                         composable(route = "info"){
-                            PokemonInformationScreen(modifier = Modifier.fillMaxSize())
+                            PokemonInformationScreen(modifier = Modifier.fillMaxSize(),navController)
                         }
                         composable(route = "greet") {
-                            PokemonGreeting(pokemonViewModel = pokemonViewModel)
+                            PokemonGreeting(pokemonViewModel = pokemonViewModel,navController)
                         }
                     }
 
@@ -152,14 +152,22 @@ private fun fetchPokemonInformation(pokemonViewModel: PokemonViewModel,no:String
     })
 }
 @Composable
-fun PokemonInformationScreen(modifier: Modifier){
-    Column( modifier = Modifier.fillMaxWidth().height(300.dp).padding(12.dp).clip(RoundedCornerShape(12.dp)).background(Color.LightGray).padding(12.dp),
+fun PokemonInformationScreen(modifier: Modifier,navController: NavController){
+    Column( modifier = Modifier
+        .fillMaxWidth()
+        .height(300.dp)
+        .padding(12.dp)
+        .clip(RoundedCornerShape(12.dp))
+        .background(Color.LightGray)
+        .padding(12.dp),
         ){
         Column(modifier = Modifier.fillMaxWidth()){
             Image(
                 painter = rememberAsyncImagePainter("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/132.png"),
                 contentDescription = "Pokemon Splash",
-                modifier = Modifier.size(128.dp).align(Alignment.CenterHorizontally),
+                modifier = Modifier
+                    .size(128.dp)
+                    .align(Alignment.CenterHorizontally),
                 contentScale = ContentScale.Fit,
             )
         }
@@ -191,7 +199,7 @@ fun PokemonInformationScreen(modifier: Modifier){
 }
 
 @Composable
-private fun CardContent(name: String,pokeURL:String,pokemonViewModel: PokemonViewModel){
+private fun CardContent(name: String,pokeURL:String,pokemonViewModel: PokemonViewModel,navController: NavController){
 //    println("Hello")
     Row(modifier = Modifier
         .padding(12.dp)
@@ -210,6 +218,9 @@ private fun CardContent(name: String,pokeURL:String,pokemonViewModel: PokemonVie
                     Log.i("URL LIST POKE NO",lstValues[6].trim().toString())
 //                    fetchPokemonInformation(pokemonViewModel,pokeURL.spli)
                     fetchPokemonInformation(pokemonViewModel,lstValues[6].trim())
+                    navController.navigate("info")
+
+
 
                 }
             ) {
@@ -226,10 +237,10 @@ private fun CardContent(name: String,pokeURL:String,pokemonViewModel: PokemonVie
 }
 
 @Composable
-fun PokemonGreeting(pokemonViewModel: PokemonViewModel) {
+fun PokemonGreeting(pokemonViewModel: PokemonViewModel,navController: NavController) {
     LazyColumn(modifier = Modifier.padding(vertical = 8.dp)){
         items(items = pokemonViewModel.items.value!!){ pokemon ->
-            CardContent(name = pokemon.name,pokeURL = pokemon.url,pokemonViewModel)
+            CardContent(name = pokemon.name,pokeURL = pokemon.url,pokemonViewModel,navController)
         }
     }
 
@@ -248,7 +259,7 @@ fun SplashActivity(pokemonViewModel: PokemonViewModel,navController:NavControlle
             contentScale = ContentScale.Fit,
         )
 
-        Button(modifier = Modifier.padding(8.dp),onClick = { navController.navigate("info") }) {
+        Button(modifier = Modifier.padding(8.dp),onClick = { navController.navigate("greet") }) {
             Text("Check out")
         }
     }
@@ -260,6 +271,6 @@ fun DefaultPreview() {
     PokeDEXTheme {
 //        PokemonGreeting("Android")
 //        SplashActivity()
-        PokemonInformationScreen(modifier = Modifier.fillMaxSize())
+//        PokemonInformationScreen(modifier = Modifier.fillMaxSize())
     }
 }
