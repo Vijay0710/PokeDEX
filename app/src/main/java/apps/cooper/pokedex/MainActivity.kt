@@ -160,12 +160,6 @@ private fun fetchPokemonInformation(pokemonViewModel: PokemonViewModel,no:String
             data.order,data.past_types,data.species,data.sprites,data.stats,data.types,data.weight)
             Log.i("POKE BASE EXP INFO: ", pokemonViewModel.pokemonInfo.value?.get(0)?.base_experience.toString())
             navController.navigate("info")
-
-//            for(pokemon in data.results){
-////                pokemonViewModel.addPokemonDetails(pokemon.name,pokemon.url)
-//            }
-//            Log.i("VIEWMODEL: ",pokemonViewModel.items.value.toString())
-//            Log.i("VIEWMODEL SIZE: ",pokemonViewModel.items.value?.size.toString())
         }
 
         override fun onFailure(call: Call<PokemonDetails>, t: Throwable) {
@@ -254,40 +248,6 @@ private fun CardContent(name: String,pokeURL:String,pokemonViewModel: PokemonVie
     }
 }
 
-//@Composable
-//private fun CardContent(name: String,pokeURL:String,pokemonViewModel: PokemonViewModel,navController: NavController){
-////    println("Hello")
-//
-//
-//    Row(modifier = Modifier
-//        .padding(12.dp)
-//        .clip(RoundedCornerShape(14.dp))
-//        .fillMaxWidth()
-//        .background(colorResource(id = R.color.dark))
-//        .padding(12.dp, vertical = 8.dp),
-//        horizontalArrangement = Arrangement.SpaceBetween
-//    ) {
-//        Text("Hello $name",color = Color.White, modifier = Modifier.align(Alignment.CenterVertically))
-//        Row() {
-//            IconButton(
-//                onClick = { Log.i("POKEMON URI: ",pokeURL)
-//                    val lstValues: List<String> = pokeURL.split("/").map { it -> it.trim() }
-//                    Log.i("LST VALUES",lstValues.toString())
-//                    Log.i("URL LIST POKE NO",lstValues[6].trim().toString())
-//                    fetchPokemonInformation(pokemonViewModel,lstValues[6].trim(),navController)
-//                }
-//            ) {
-//                Icon(
-//                    imageVector = Icons.Filled.ArrowForward,
-//                    tint = Color.White,
-//                    contentDescription = "Click here"
-//                )
-//            }
-//
-//        }
-//
-//    }
-//}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
