@@ -5,11 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 class PokemonViewModel : ViewModel() {
-    private val _items : MutableLiveData<List<Result>> = MutableLiveData(listOf())
-    private val _pokemonInfo : MutableLiveData<List<PokemonDetails>> = MutableLiveData(listOf())
+    private var _items : MutableLiveData<List<Result>> = MutableLiveData(listOf())
+    private var _pokemonInfo : MutableLiveData<List<PokemonDetails>> = MutableLiveData(listOf())
 //    private val _url : MutableLiveData<String> = MutableLiveData("")
-    val items : LiveData<List<Result>> = _items
-    val pokemonInfo : LiveData<List<PokemonDetails>> = _pokemonInfo
+    var items : LiveData<List<Result>> = _items
+    var pokemonInfo : LiveData<List<PokemonDetails>> = _pokemonInfo
 
     fun updatePokemonDetails(abilities: List<Ability>,
                              base_experience: Int,

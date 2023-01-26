@@ -1,10 +1,12 @@
 package apps.cooper.pokedex
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.lazy.items
@@ -12,12 +14,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.TextField
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 //import androidx.compose.runtime.saveable.rememberSaveable
@@ -25,17 +29,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -49,6 +46,7 @@ import apps.cooper.pokedex.models.Pokemon
 import apps.cooper.pokedex.models.PokemonDetails
 import apps.cooper.pokedex.models.PokemonInfo
 import apps.cooper.pokedex.models.PokemonViewModel
+import apps.cooper.pokedex.models.Result
 import apps.cooper.pokedex.ui.theme.PokeDEXTheme
 import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
@@ -58,14 +56,17 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import java.util.*
+import kotlin.Comparator
 
+private lateinit var sortedList: List<Result>
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -145,8 +146,75 @@ private fun retrofitBuilder(url: String): Pokemon {
         .create(Pokemon::class.java)
 }
 
+private val nameComparator = Comparator<Result>{left, right ->
+    right.name.compareTo(left.name)
+}
 
-private fun fetchPokemonInformation(pokemonViewModel: PokemonViewModel,no:String,navController: NavController){
+@Composable
+private fun FilterMenu(pokemonViewModel: PokemonViewModel){
+    var expanded by remember { mutableStateOf(false) }
+
+
+    Box(modifier = Modifier
+        .wrapContentSize(Alignment.TopEnd)) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceAround
+            ){
+            IconButton(onClick = { expanded = true }) {
+                Icon(painterResource(id = R.drawable.ic_filter_list), contentDescription = null)
+            }
+            Icon(Icons.Filled.Search, contentDescription = null)
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Name") },
+                onClick = {
+                    sortedList = pokemonViewModel.items.value!!.sortedBy {
+                        it.name
+                    }
+//
+                    Log.i("SORTED LIST: ", sortedList.toString())
+                },
+                leadingIcon = {
+                    Icon(
+                        painterResource(id = R.drawable.pikachu_icon),
+                        contentDescription = null
+                    )
+                })
+//            DropdownMenuItem(
+//                text = { Text("Weight") },
+//                onClick = { /* Handle settings! */ },
+//                leadingIcon = {
+//                    Icon(
+//                        Icons.Outlined.Settings,
+//                        contentDescription = null
+//                    )
+//                })
+//            Divider()
+//            DropdownMenuItem(
+//                text = { Text("Send Feedback") },
+//                onClick = { /* Handle send feedback! */ },
+//                leadingIcon = {
+//                    Icon(
+//                        Icons.Outlined.Email,
+//                        contentDescription = null
+//                    )
+//                },
+//                trailingIcon = { Text("F11", textAlign = TextAlign.Center) })
+        }
+    }
+}
+
+
+private fun fetchPokemonInformation(
+    pokemonViewModel: PokemonViewModel,
+    no: String,
+    navController: NavController,
+){
     val rBuilder = retrofitBuilder("https://pokeapi.co/api/v2/pokemon/")
     val rData = rBuilder.getPokemonInfo(no)
     rData.enqueue(object : Callback<PokemonDetails> {
@@ -172,7 +240,7 @@ private fun fetchPokemonInformation(pokemonViewModel: PokemonViewModel,no:String
 fun PokemonInformationScreen(modifier: Modifier,pokemonViewModel:PokemonViewModel,navController: NavController){
     Column( modifier = Modifier
         .fillMaxWidth()
-        .height(300.dp)
+        .height(500.dp)
         .padding(12.dp)
         .clip(RoundedCornerShape(12.dp))
         .background(Color.LightGray)
@@ -180,10 +248,10 @@ fun PokemonInformationScreen(modifier: Modifier,pokemonViewModel:PokemonViewMode
         ){
         Column(modifier = Modifier.fillMaxWidth()){
             Image(
-                painter = rememberAsyncImagePainter("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/132.png"),
+                painter = rememberAsyncImagePainter(pokemonViewModel.pokemonInfo.value!![0].sprites.other.dream_world),
                 contentDescription = "Pokemon Splash",
                 modifier = Modifier
-                    .size(128.dp)
+                    .size(256.dp)
                     .align(Alignment.CenterHorizontally),
                 contentScale = ContentScale.Fit,
             )
@@ -219,7 +287,11 @@ private fun CardContent(name: String,pokeURL:String,pokemonViewModel: PokemonVie
     val interFontFamily = FontFamily(
         Font(R.font.inter, FontWeight.Light)
     )
-    ElevatedCard(Modifier.fillMaxWidth().height(85.dp).padding(12.dp)) {
+    ElevatedCard(
+        Modifier
+            .fillMaxWidth()
+            .height(85.dp)
+            .padding(12.dp)) {
         Row(modifier = Modifier
             .fillMaxWidth()
             .padding(12.dp, vertical = 8.dp),
@@ -231,6 +303,7 @@ private fun CardContent(name: String,pokeURL:String,pokemonViewModel: PokemonVie
                 IconButton(
                     onClick = {
                         Log.i("POKEMON URI: ",pokeURL)
+
                         val lstValues: List<String> = pokeURL.split("/").map { it -> it.trim() }
                         Log.i("LST VALUES",lstValues.toString())
                         Log.i("URL LIST POKE NO",lstValues[6].trim().toString())
@@ -256,24 +329,32 @@ fun PokemonGreeting(pokemonViewModel: PokemonViewModel,navController: NavControl
     var inputText by rememberSaveable(stateSaver = TextFieldValue.Saver){
         mutableStateOf(TextFieldValue())
     }
-    Column(){
+    var expandedSort by remember { mutableStateOf(false) }
+    Column {
         TextField(
             value = inputText,
             onValueChange = { inputText = it },
-            label = {Text("Search")},
+            label = { Text("Search") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .align(Alignment.CenterHorizontally),
             singleLine = true,
-            trailingIcon = {Icon(Icons.Filled.Search,contentDescription = "Search")}
+
+            trailingIcon = { Row(Modifier.padding(6.dp)) { FilterMenu(pokemonViewModel)  } },
         )
+        Log.i("IN DROPDOWN: ", pokemonViewModel.items.value!!.toString())
+//        FilterMenu()
+
+        IconButton(onClick = { expandedSort = true }) {
+            Icon(painterResource(id = R.drawable.ic_filter_list), contentDescription = null)
+        }
 
         LazyColumn(modifier = Modifier.padding(vertical = 8.dp)){
-            items(items = pokemonViewModel.items.value!!.filter {
+            items(items =  pokemonViewModel.items.value!!.filter {
                 it.name.contains(inputText.text,ignoreCase = true)
-            },key = {it.url}){ pokemon ->
+            }.sortedBy { it.name },key = {it.url}){ pokemon ->
 
                 CardContent(name = pokemon.name,pokeURL = pokemon.url,pokemonViewModel,navController)
             }
@@ -310,6 +391,7 @@ fun DefaultPreview() {
 //        SearchContent(Modifier)
 //        PokemonGreeting("Android")
 //        SplashActivity()
+//        FilterMenu()
 //        PokemonInformationScreen(modifier = Modifier.fillMaxSize())
 //        CardContent(name = "demo", pokeURL = "google.com", pokemonViewModel = , navController = NavController(this@MainActivity))
 //        DemoCardContent()
