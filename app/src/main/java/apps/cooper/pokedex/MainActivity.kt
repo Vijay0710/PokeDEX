@@ -11,6 +11,7 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,6 +20,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Settings
@@ -59,15 +61,27 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import coil.decode.SvgDecoder
+import coil.request.ImageRequest
 import java.util.*
 import kotlin.Comparator
 
 private lateinit var sortedList: List<Result>
-
+//private lateinit var pokemonViewModel: PokemonViewModel
+private val interFontFamily = FontFamily(
+    Font(R.font.inter, FontWeight.Light)
+)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -150,61 +164,90 @@ private val nameComparator = Comparator<Result>{left, right ->
     right.name.compareTo(left.name)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FilterMenu(pokemonViewModel: PokemonViewModel){
-    var expanded by remember { mutableStateOf(false) }
-
-
-    Box(modifier = Modifier
-        .wrapContentSize(Alignment.TopEnd)) {
-        Row(verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceAround
+private fun InfoScreen(){
+//    val pokemonViewModel:PokemonViewModel by viewModel()
+    val height = 0
+    var state by remember { mutableStateOf(0) }
+    val titles = listOf("About", "Stats", "Moves","Evolution","Location")
+    //The below text was taken from flavor_text_entries from pokemon-species/25 endpoint
+    val body = listOf("It keeps its tail raised to monitor its surroundings. If you yank its tail, it will try to bite you.")
+    ElevatedCard(modifier = Modifier
+        .fillMaxWidth()
+        .fillMaxHeight()
+        .padding(12.dp),
+        ){
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
             ){
-            IconButton(onClick = { expanded = true }) {
-                Icon(painterResource(id = R.drawable.ic_filter_list), contentDescription = null)
-            }
-            Icon(Icons.Filled.Search, contentDescription = null)
-        }
 
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            DropdownMenuItem(
-                text = { Text("Name") },
-                onClick = {
-                    sortedList = pokemonViewModel.items.value!!.sortedBy {
-                        it.name
-                    }
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/25.png")
+                    .decoderFactory(SvgDecoder.Factory())
+                    .build()
+                ,
+                contentDescription =null,
+                modifier = Modifier
+                    .padding(12.dp)
+                    .size(200.dp),
+                alignment = Alignment.Center,
+            )
+            Text("Pikachu", fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold)
+
+            Row(){
+                AssistChip(
+                    onClick = { /* Do something! */ },
+                    label = { Text("Lightning") },
+                    Modifier
+                        .padding(2.dp),
+//                    leadingIcon = {
+//                        Icon(
+//                            painterResource(id = R.drawable.thunder),
+//                            contentDescription = "Localized description",
+//                            Modifier.width(18.dp)
 //
-                    Log.i("SORTED LIST: ", sortedList.toString())
-                },
-                leadingIcon = {
-                    Icon(
-                        painterResource(id = R.drawable.pikachu_icon),
-                        contentDescription = null
-                    )
-                })
-//            DropdownMenuItem(
-//                text = { Text("Weight") },
-//                onClick = { /* Handle settings! */ },
-//                leadingIcon = {
-//                    Icon(
-//                        Icons.Outlined.Settings,
-//                        contentDescription = null
-//                    )
-//                })
-//            Divider()
-//            DropdownMenuItem(
-//                text = { Text("Send Feedback") },
-//                onClick = { /* Handle send feedback! */ },
-//                leadingIcon = {
-//                    Icon(
-//                        Icons.Outlined.Email,
-//                        contentDescription = null
-//                    )
-//                },
-//                trailingIcon = { Text("F11", textAlign = TextAlign.Center) })
+//                        )
+//                    },
+                    shape = RoundedCornerShape(50),
+                )
+            }
+
+//            Image(
+//                painter = rememberAsyncImagePainter("https://unpkg.com/pokeapi-sprites@2.0.4/sprites/pokemon/other/dream-world/1.svg"),
+//                contentDescription = "Pokemon Splash",
+//                modifier = Modifier
+//                    .padding(12.dp)
+//                    .clip(RoundedCornerShape(10.dp))
+//                    .size(250.dp),
+//                alignment = Alignment.Center,
+//
+//            )
+            Column(){
+                ScrollableTabRow(selectedTabIndex = state, edgePadding = 0.dp) {
+                    titles.forEachIndexed { index, title ->
+                        Tab(
+                            selected = state == index,
+                            onClick = { state = index },
+                            text = { Text(text = title, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                        )
+                    }
+                }
+                Text(
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(12.dp),
+                    text = "${body[0]}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold,
+                )
+            }
+//            Text("Order is 32",fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(2.dp))
+//            Text("Hello",fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(2.dp))
+//            Text("Hello",fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(2.dp))
         }
     }
 }
@@ -238,15 +281,12 @@ private fun fetchPokemonInformation(
 }
 @Composable
 fun PokemonInformationScreen(modifier: Modifier,pokemonViewModel:PokemonViewModel,navController: NavController){
-    Column( modifier = Modifier
+    ElevatedCard(modifier = Modifier
         .fillMaxWidth()
         .height(500.dp)
         .padding(12.dp)
-        .clip(RoundedCornerShape(12.dp))
-        .background(Color.LightGray)
-        .padding(12.dp),
-        ){
-        Column(modifier = Modifier.fillMaxWidth()){
+    ){
+        Column(){
             Image(
                 painter = rememberAsyncImagePainter(pokemonViewModel.pokemonInfo.value!![0].sprites.other.dream_world),
                 contentDescription = "Pokemon Splash",
@@ -284,9 +324,7 @@ fun PokemonInformationScreen(modifier: Modifier,pokemonViewModel:PokemonViewMode
 
 @Composable
 private fun CardContent(name: String,pokeURL:String,pokemonViewModel: PokemonViewModel,navController: NavController){
-    val interFontFamily = FontFamily(
-        Font(R.font.inter, FontWeight.Light)
-    )
+
     ElevatedCard(
         Modifier
             .fillMaxWidth()
@@ -342,23 +380,81 @@ fun PokemonGreeting(pokemonViewModel: PokemonViewModel,navController: NavControl
                 .align(Alignment.CenterHorizontally),
             singleLine = true,
 
-            trailingIcon = { Row(Modifier.padding(6.dp)) { FilterMenu(pokemonViewModel)  } },
+            trailingIcon = { Row(Modifier.padding(6.dp)) {
+                var expanded by remember { mutableStateOf(false) }
+
+
+                Box(modifier = Modifier
+                    .wrapContentSize(Alignment.TopEnd)) {
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ){
+                        IconButton(onClick = { expanded = true }) {
+                            Icon(painterResource(id = R.drawable.ic_filter_list), contentDescription = "Filter")
+                        }
+                        Icon(Icons.Filled.Search, contentDescription = "Search")
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Name") },
+                            onClick = {
+                                sortedList = pokemonViewModel.items.value!!.sortedBy {
+                                    it.name
+                                }
+                                expandedSort = !expandedSort
+                                Log.i("SORTED LIST: ", sortedList.toString())
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    painterResource(id = R.drawable.pikachu_icon),
+                                    contentDescription = null
+                                )
+                            })
+                    }
+                }
+            } },
         )
         Log.i("IN DROPDOWN: ", pokemonViewModel.items.value!!.toString())
 //        FilterMenu()
 
-        IconButton(onClick = { expandedSort = true }) {
-            Icon(painterResource(id = R.drawable.ic_filter_list), contentDescription = null)
-        }
+//        IconButton(onClick = { expandedSort = !expandedSort}) {
+//            Icon(painterResource(id = R.drawable.ic_filter_list), contentDescription = null)
+//        }
 
-        LazyColumn(modifier = Modifier.padding(vertical = 8.dp)){
-            items(items =  pokemonViewModel.items.value!!.filter {
-                it.name.contains(inputText.text,ignoreCase = true)
-            }.sortedBy { it.name },key = {it.url}){ pokemon ->
 
-                CardContent(name = pokemon.name,pokeURL = pokemon.url,pokemonViewModel,navController)
+
+        if(expandedSort) {
+            LazyColumn(modifier = Modifier.padding(vertical = 8.dp)) {
+                items(items = pokemonViewModel.items.value!!.filter {
+                    it.name.contains(inputText.text, ignoreCase = true)
+                }.sortedBy { it.name }, key = { it.url }) { pokemon ->
+
+                    CardContent(
+                        name = pokemon.name,
+                        pokeURL = pokemon.url,
+                        pokemonViewModel,
+                        navController
+                    )
+                }
             }
         }
+
+        else {
+            LazyColumn(modifier = Modifier.padding(vertical = 8.dp)){
+                items(items =  pokemonViewModel.items.value!!.filter {
+                    it.name.contains(inputText.text,ignoreCase = true)
+                }.sortedByDescending { it.name },key = {it.url}){ pokemon ->
+
+                    CardContent(name = pokemon.name,pokeURL = pokemon.url,pokemonViewModel,navController)
+                }
+            }
+        }
+
+
     }
 
 
@@ -392,6 +488,7 @@ fun DefaultPreview() {
 //        PokemonGreeting("Android")
 //        SplashActivity()
 //        FilterMenu()
+        InfoScreen()
 //        PokemonInformationScreen(modifier = Modifier.fillMaxSize())
 //        CardContent(name = "demo", pokeURL = "google.com", pokemonViewModel = , navController = NavController(this@MainActivity))
 //        DemoCardContent()
