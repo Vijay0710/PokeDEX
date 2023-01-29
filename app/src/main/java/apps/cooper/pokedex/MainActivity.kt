@@ -8,10 +8,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.*
-import androidx.compose.foundation.Image
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.*
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,6 +23,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.twotone.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 //import androidx.compose.runtime.saveable.rememberSaveable
@@ -61,14 +61,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -170,30 +175,40 @@ private fun InfoScreen(){
 //    val pokemonViewModel:PokemonViewModel by viewModel()
     val height = 0
     var state by remember { mutableStateOf(0) }
-    val titles = listOf("About", "Stats", "Moves","Evolution","Location")
+    val titles = listOf("About", "Stats", "Abilities","Evolution","Location")
     //The below text was taken from flavor_text_entries from pokemon-species/25 endpoint
-    val body = listOf("It keeps its tail raised to monitor its surroundings. If you yank its tail, it will try to bite you.")
+//    val body = listOf("It keeps its tail raised to monitor its surroundings. If you yank its tail, it will try to bite you."
+//    ,"","Content will be fetched","Content will be fetched","Content will be fetched"
+//    )
+    val progress by remember { mutableStateOf(0.6f) }
+    val visibleText by remember { mutableStateOf(false) }
+
+
+
     ElevatedCard(modifier = Modifier
         .fillMaxWidth()
-        .fillMaxHeight()
-        .padding(12.dp),
+        .fillMaxHeight(),
         ){
+
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
             ){
-
+            //https://gdurl.com/OQTe
+            //https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/25.png
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/25.png")
+                    .data("https://gdurl.com/OQTe")
                     .decoderFactory(SvgDecoder.Factory())
                     .build()
                 ,
                 contentDescription =null,
                 modifier = Modifier
                     .padding(12.dp)
-                    .size(200.dp),
+                    .size(300.dp),
                 alignment = Alignment.Center,
             )
             Text("Pikachu", fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold)
@@ -216,18 +231,20 @@ private fun InfoScreen(){
                 )
             }
 
-//            Image(
-//                painter = rememberAsyncImagePainter("https://unpkg.com/pokeapi-sprites@2.0.4/sprites/pokemon/other/dream-world/1.svg"),
-//                contentDescription = "Pokemon Splash",
-//                modifier = Modifier
-//                    .padding(12.dp)
-//                    .clip(RoundedCornerShape(10.dp))
-//                    .size(250.dp),
-//                alignment = Alignment.Center,
-//
-//            )
-            Column(){
-                ScrollableTabRow(selectedTabIndex = state, edgePadding = 0.dp) {
+
+            Column(modifier = Modifier.fillMaxWidth()){
+                ScrollableTabRow(selectedTabIndex = state, edgePadding = 0.dp, indicator = { tabPositions ->
+                    Box(
+                        modifier = Modifier
+                            .tabIndicatorOffset(tabPositions[state])
+                            .height(4.dp) // clip modifier not working
+                            .padding(horizontal = 12.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                    )
+                },divider = {}) {
                     titles.forEachIndexed { index, title ->
                         Tab(
                             selected = state == index,
@@ -236,20 +253,120 @@ private fun InfoScreen(){
                         )
                     }
                 }
-                Text(
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                        .padding(12.dp),
-                    text = "${body[0]}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold,
-                )
+
+
+                if(state==0){
+                    Text(
+                        modifier = Modifier
+                            .align(Alignment.Start)
+                            .padding(12.dp),
+                        text =  "It keeps its tail raised to monitor its surroundings. If you yank its tail, it will try to bite you.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold,
+                    )
+                    ElevatedCard(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                        .padding(12.dp)) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                            ){
+                            Column(){
+                                Row(verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth(0.5f)
+                                    ){
+                                    Icon(painterResource(id = R.drawable.ic_weight),contentDescription = "Weight",Modifier.size(24.dp))
+                                    Text("6.9 kg (15.2 lbs)" , fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold, fontSize = 12.sp,)
+                                }
+                                Text("Weight" , fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, modifier = Modifier.fillMaxWidth(0.5f
+                                ), textAlign = TextAlign.Center)
+                            }
+
+                            Divider(color = Color.LightGray,
+                                modifier = Modifier
+                                    .padding(start = 6.dp)
+                                    .fillMaxHeight()
+                                    .width(1.dp),
+
+
+                            )
+
+                            Column(){
+                                Row(verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                ){
+                                    Icon(painterResource(id = R.drawable.ic_height),contentDescription = "Height",Modifier.size(24.dp))
+                                    Text("0.7 m (2' 04'')" , fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                                }
+                                Text("Height" , fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, modifier = Modifier.fillMaxWidth(1f
+                                ), textAlign = TextAlign.Center)
+
+
+                            }
+
+                        }
+                    }
+                }
+                if(state == 1) {
+                    Column(modifier = Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center){
+//                        The linear progress indicator will be worked upon since it doesn't have documentation on how to have rounded corners in progress indicators
+//                        LinearProgressIndicator(
+//                            modifier = Modifier
+//                                .padding(12.dp)
+//                                .height(10.dp)
+//                                .clip(
+//                                    RoundedCornerShape(12.dp)
+//                                ),
+//                            progress = animatedProgress,
+//                        )
+//                      The below examples describes the use of custom linear indicator
+                        for(i in 1..6){
+                            Row(modifier = Modifier.fillMaxWidth()
+                            , verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ){
+                                Text("HP", fontFamily = interFontFamily, fontWeight = FontWeight.ExtraLight)
+                                Text("$i", fontFamily = interFontFamily, fontWeight = FontWeight.Bold)
+                                Box(modifier = Modifier
+                                    .padding(12.dp)
+                                    .clip(RoundedCornerShape(15.dp))
+                                    .height(10.dp)
+                                    .background(ProgressIndicatorDefaults.linearTrackColor)
+                                    .width(240.dp)){
+                                    Box(modifier = Modifier
+                                        .clip(RoundedCornerShape(15.dp))
+                                        .height(10.dp)
+                                        .background(
+                                            ProgressIndicatorDefaults.linearColor
+                                        )
+                                        .width(240.dp * progress))
+                                }
+                            }
+
+                        }
+                    }
+                }
+                if(state == 2){
+                    CardContentAbilities(name = "", pokeURL = "")
+                }
+
             }
 //            Text("Order is 32",fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(2.dp))
 //            Text("Hello",fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(2.dp))
 //            Text("Hello",fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(2.dp))
         }
     }
+}
+
+@Composable
+fun CardContentAbilities(name: String, pokeURL: String) {
+
 }
 
 
