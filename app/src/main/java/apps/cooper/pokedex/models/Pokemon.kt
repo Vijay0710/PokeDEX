@@ -12,5 +12,7 @@ interface Pokemon {
 
     @GET("{no}")
     fun getPokemonInfo(@Path("no") no : String):Call<PokemonDetails>
+    @GET("{no}")
+    fun getPokemonSpeciesInfo(@Path("no") no : String):Call<PokemonSpeciesInfo>
 
 }
