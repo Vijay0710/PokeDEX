@@ -445,40 +445,75 @@ private fun fetchPokemonSpeciesInformation(
             response: Response<PokemonSpeciesInfo>
         ) {
             Log.i("POKE SPECIES RESPONSE: ",response.toString())
-            val pokeSpeciesData = response.body()!!
+
 
             println("RESULTS")
-            Log.i("SPECIES DATA: ", pokeSpeciesData.name)
-            Log.i("POKEMON DESC: ", pokeSpeciesData.flavor_text_entries[0].flavor_text.toString())
-            pokemonViewModel.updatePokemonSpeciesDetails(
-                pokeSpeciesData.base_happiness,
-                pokeSpeciesData.capture_rate,
-                pokeSpeciesData.color,
-                pokeSpeciesData.egg_groups,
-                pokeSpeciesData.evolution_chain,
-                pokeSpeciesData.evolves_from_species,
-                pokeSpeciesData.flavor_text_entries,
-                pokeSpeciesData.form_descriptions,
-                pokeSpeciesData.forms_switchable,
-                pokeSpeciesData.gender_rate,
-                pokeSpeciesData.genera,
-                pokeSpeciesData.generation,
-                pokeSpeciesData.growth_rate,
-                pokeSpeciesData.habitat,
-                pokeSpeciesData.has_gender_differences,
-                pokeSpeciesData.hatch_counter,
-                pokeSpeciesData.id,
-                pokeSpeciesData.is_baby,
-                pokeSpeciesData.is_legendary,
-                pokeSpeciesData.is_mythical,
-                pokeSpeciesData.name,
-                pokeSpeciesData.names,
-                pokeSpeciesData.order,
-                pokeSpeciesData.pal_park_encounters,
-                pokeSpeciesData.pokedex_numbers,
-                pokeSpeciesData.shape,
-                pokeSpeciesData.varieties
-            )
+//            Log.i("SPECIES DATA: ", pokeSpeciesData.name)
+//            Log.i("POKEMON DESC: ", pokeSpeciesData.flavor_text_entries[0].flavor_text.toString())
+            if (response.code() != 404) {
+                val pokeSpeciesData = response.body()!!
+                pokemonViewModel.updatePokemonSpeciesDetails(
+                    pokeSpeciesData.base_happiness,
+                    pokeSpeciesData.capture_rate,
+                    pokeSpeciesData.color,
+                    pokeSpeciesData.egg_groups,
+                    pokeSpeciesData.evolution_chain,
+                    pokeSpeciesData.evolves_from_species,
+                    pokeSpeciesData.flavor_text_entries,
+                    pokeSpeciesData.form_descriptions,
+                    pokeSpeciesData.forms_switchable,
+                    pokeSpeciesData.gender_rate,
+                    pokeSpeciesData.genera,
+                    pokeSpeciesData.generation,
+                    pokeSpeciesData.growth_rate,
+                    pokeSpeciesData.habitat,
+                    pokeSpeciesData.has_gender_differences,
+                    pokeSpeciesData.hatch_counter,
+                    pokeSpeciesData.id,
+                    pokeSpeciesData.is_baby,
+                    pokeSpeciesData.is_legendary,
+                    pokeSpeciesData.is_mythical,
+                    pokeSpeciesData.name,
+                    pokeSpeciesData.names,
+                    pokeSpeciesData.order,
+                    pokeSpeciesData.pal_park_encounters,
+                    pokeSpeciesData.pokedex_numbers,
+                    pokeSpeciesData.shape,
+                    pokeSpeciesData.varieties
+                )
+            }
+            else{
+                pokemonViewModel.updatePokemonSpeciesDetails(
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                )
+            }
+
             Log.i(
                 "POKE SPECIES INFO: ",
                 pokemonViewModel.pokemonSpeciesInfo.value!![0].names.toString()
@@ -506,6 +541,7 @@ private fun fetchPokemonInformation(
             println("RESULTS")
             Log.i("INFO DATA: ", data.name)
             Log.i("POKEMON NAME: ", data.name)
+
             pokemonViewModel.updatePokemonDetails(
                 data.abilities,
                 data.base_experience,
@@ -571,7 +607,7 @@ fun PokemonInformationScreen(
             //https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/25.png
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/$pokemonID.png")
+                    .data("https://raw.githubusercontent.com/Vijay0710/poke-images/main/sprites/pokemon/other/home/$pokemonID.png")
                     .decoderFactory(SvgDecoder.Factory())
                     .build(),
                 contentDescription = null,
@@ -785,7 +821,9 @@ fun PokemonInformationScreen(
                             Row(modifier = Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center,){
                                 Text(
-                                    modifier = Modifier.fillMaxWidth(0.23f).align(Alignment.CenterVertically),
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.23f)
+                                        .align(Alignment.CenterVertically),
                                     text = pokemonViewModel.pokemonInfo.value!![0].stats[i].stat.name.toString().replace("special","Spl",ignoreCase = true),
                                     fontFamily = interFontFamily, textAlign = TextAlign.Center,
                                     fontWeight = FontWeight.ExtraLight, fontSize = 12.sp, overflow = TextOverflow.Visible
@@ -797,7 +835,8 @@ fun PokemonInformationScreen(
                                     fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,overflow = TextOverflow.Ellipsis
                                 )
                                 Box(
-                                    modifier = Modifier.align(Alignment.CenterVertically)
+                                    modifier = Modifier
+                                        .align(Alignment.CenterVertically)
                                         .padding(12.dp)
                                         .clip(RoundedCornerShape(15.dp))
                                         .height(10.dp)
@@ -812,7 +851,7 @@ fun PokemonInformationScreen(
                                             .background(
                                                 ProgressIndicatorDefaults.linearColor
                                             )
-                                            .width(240.dp * (floatValue/10))
+                                            .width(240.dp * (floatValue / 10))
                                     )
                                 }
                             }
