@@ -177,7 +177,7 @@ private fun retrofitBuilder(url: String): Pokemon {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun InfoScreen() {
-    var state by remember { mutableStateOf(0) }
+    var state by remember { mutableStateOf(1) }
     val titles = listOf("About", "Stats", "Abilities", "Evolution", "Location")
     val progress by remember { mutableStateOf(0.6f) }
 
@@ -364,7 +364,7 @@ private fun InfoScreen() {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(12.dp),
+                            .padding(9.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
@@ -379,41 +379,73 @@ private fun InfoScreen() {
 //                            progress = animatedProgress,
 //                        )
 //                      The below examples describes the use of custom linear indicator
+                        val dict = mapOf("attack" to "Atk", "defense" to "Def",
+                            "special-attack" to "SAtk", "special-defense" to "SDef" ,"defense" to "Def" ,"speed" to "Spd","hp" to "HP"
+                        )
                         for (i in 1..6) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceEvenly
-                            ) {
-                                Text(
-                                    "HP",
-                                    fontFamily = interFontFamily,
-                                    fontWeight = FontWeight.ExtraLight
-                                )
-                                Text(
-                                    "$i",
-                                    fontFamily = interFontFamily,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Box(
-                                    modifier = Modifier
-                                        .padding(12.dp)
-                                        .clip(RoundedCornerShape(15.dp))
-                                        .height(10.dp)
-                                        .background(ProgressIndicatorDefaults.linearTrackColor)
-                                        .width(240.dp)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(15.dp))
-                                            .height(10.dp)
-                                            .background(
-                                                ProgressIndicatorDefaults.linearColor
-                                            )
-                                            .width(240.dp * progress)
-                                    )
-                                }
-                            }
+//                            val floatValue =
+//                                100/10
+//                            Column(
+//                                modifier = Modifier.fillMaxWidth(),
+//                                horizontalAlignment = Alignment.CenterHorizontally,
+//                                verticalArrangement = Arrangement.SpaceEvenly
+//                            ) {
+//                                Row(
+//                                    modifier = Modifier
+//                                        .fillMaxWidth()
+//                                        .horizontalScroll(
+//                                            rememberScrollState()
+//                                        ),
+//                                    verticalAlignment = Alignment.CenterVertically,
+//                                    horizontalArrangement = Arrangement.SpaceAround,
+//                                ) {
+//                                    Text(
+//                                        modifier = Modifier
+//                                            .fillMaxWidth()
+//                                            .padding(5.dp)
+//                                            .align(Alignment.CenterVertically),
+//                                        text =
+//                                        dict[pokemonViewModel.pokemonInfo.value!![0].stats[i].stat.name]!!
+//                                        ,
+//                                        fontFamily = interFontFamily,
+//                                        textAlign = TextAlign.Start,
+//                                        fontWeight = FontWeight.SemiBold,
+//                                        fontSize = 12.sp,
+//                                        overflow = TextOverflow.Ellipsis
+//                                    )
+//                                    Text(
+//                                        modifier = Modifier
+//                                            .fillMaxWidth()
+//                                            .padding(7.dp)
+//                                            .align(Alignment.CenterVertically),
+//                                        text = pokemonViewModel.pokemonInfo.value!![0].stats[i].base_stat.toString(),
+//                                        fontFamily = interFontFamily,
+//                                        fontWeight = FontWeight.Bold,
+//                                        textAlign = TextAlign.Start,
+//                                        overflow = TextOverflow.Ellipsis
+//                                    )
+//                                    Box(
+//                                        modifier = Modifier
+//
+//                                            .align(Alignment.CenterVertically)
+//                                            .clip(RoundedCornerShape(15.dp))
+//                                            .height(10.dp)
+//                                            .background(ProgressIndicatorDefaults.linearTrackColor)
+//                                            .width(240.dp)
+//                                    ) {
+//                                        Log.i("FLOAT VALUE", floatValue.toString())
+//                                        Box(
+//                                            modifier = Modifier
+//                                                .clip(RoundedCornerShape(15.dp))
+//                                                .height(10.dp)
+//                                                .background(
+//                                                    ProgressIndicatorDefaults.linearColor
+//                                                )
+//                                                .width(240.dp * (floatValue / 10))
+//                                        )
+//                                    }
+//                                }
+//                            }
 
                         }
                     }
@@ -444,7 +476,7 @@ private fun fetchPokemonSpeciesInformation(
             call: Call<PokemonSpeciesInfo>,
             response: Response<PokemonSpeciesInfo>
         ) {
-            Log.i("POKE SPECIES RESPONSE: ",response.toString())
+            Log.i("POKE SPECIES RESPONSE: ", response.toString())
 
 
             println("RESULTS")
@@ -481,8 +513,7 @@ private fun fetchPokemonSpeciesInformation(
                     pokeSpeciesData.shape,
                     pokeSpeciesData.varieties
                 )
-            }
-            else{
+            } else {
                 pokemonViewModel.updatePokemonSpeciesDetails(
                     null,
                     null,
@@ -519,7 +550,6 @@ private fun fetchPokemonSpeciesInformation(
                 pokemonViewModel.pokemonSpeciesInfo.value!![0].names.toString()
             )
             navController.navigate("info/$no")
-
         }
 
         override fun onFailure(call: Call<PokemonSpeciesInfo>, t: Throwable) {
@@ -566,7 +596,7 @@ private fun fetchPokemonInformation(
                 "POKE BASE EXP INFO: ",
                 pokemonViewModel.pokemonInfo.value?.get(0)?.base_experience.toString()
             )
-            fetchPokemonSpeciesInformation(pokemonViewModel,no,navController)
+            fetchPokemonSpeciesInformation(pokemonViewModel, no, navController)
         }
 
         override fun onFailure(call: Call<PokemonDetails>, t: Throwable) {
@@ -622,13 +652,17 @@ fun PokemonInformationScreen(
                 fontWeight = FontWeight.SemiBold
             )
 
-                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,horizontalArrangement = Arrangement.Center) {
-                    for(pokemon in pokemonViewModel.pokemonInfo.value!![0].types) {
-                        AssistChip(
-                            onClick = { /* Do something! */ },
-                            label = { Text(pokemon.type.name.capitalize()) },
-                            Modifier
-                                .padding(2.dp),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                for (pokemon in pokemonViewModel.pokemonInfo.value!![0].types) {
+                    AssistChip(
+                        onClick = { /* Do something! */ },
+                        label = { Text(pokemon.type.name.capitalize()) },
+                        Modifier
+                            .padding(2.dp),
 //                    leadingIcon = {
 //                        Icon(
 //                            painterResource(id = R.drawable.thunder),
@@ -637,15 +671,17 @@ fun PokemonInformationScreen(
 //
 //                        )
 //                    },
-                            shape = RoundedCornerShape(50),
-                        )
-                    }
+                        shape = RoundedCornerShape(50),
+                    )
                 }
+            }
 
             //End of Pokemon Image Name and Attribute
 
-            Column(modifier = Modifier.fillMaxWidth()
-            , horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
                 ScrollableTabRow(
                     selectedTabIndex = state,
@@ -679,16 +715,15 @@ fun PokemonInformationScreen(
                 }
 
                 if (state == 0) {
-                    for(i in pokemonViewModel.pokemonSpeciesInfo.value!![0].flavor_text_entries){
-                        val string = URLDecoder.decode(i.flavor_text,"utf-8")
-                        Log.i("ENCSTR",string)
-                        if(i.language.name == "en"){
-                            Log.i("TEXT",i.flavor_text.toString())
+                    for (i in pokemonViewModel.pokemonSpeciesInfo.value!![0].flavor_text_entries) {
+                        val string = URLDecoder.decode(i.flavor_text, "utf-8")
+                        Log.i("ENCSTR", string)
+                        if (i.language.name == "en") {
+                            Log.i("TEXT", i.flavor_text.toString())
                             Text(
                                 modifier = Modifier
                                     .padding(12.dp)
-                                    .fillMaxWidth()
-                                ,
+                                    .fillMaxWidth(),
 
                                 text = i.flavor_text,
                                 overflow = TextOverflow.Clip,
@@ -714,7 +749,8 @@ fun PokemonInformationScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Column() {
-                                val weight = pokemonViewModel.pokemonInfo.value!![0].weight.toFloat() / 10
+                                val weight =
+                                    pokemonViewModel.pokemonInfo.value!![0].weight.toFloat() / 10
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.Center,
@@ -755,7 +791,8 @@ fun PokemonInformationScreen(
                                 )
 
                             Column() {
-                                val height = pokemonViewModel.pokemonInfo.value!![0].height.toFloat() / 10
+                                val height =
+                                    pokemonViewModel.pokemonInfo.value!![0].height.toFloat() / 10
                                 val calc = 100 * height / 2.54
                                 val feet = kotlin.math.floor(calc / 12)
                                 val inches = floor(calc - (12 * feet))
@@ -797,7 +834,7 @@ fun PokemonInformationScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(12.dp),
+                            .padding(8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
@@ -812,50 +849,72 @@ fun PokemonInformationScreen(
 //                            progress = animatedProgress,
 //                        )
 //                      The below examples describes the use of custom linear indicator
+                        val dict = mapOf("attack" to "Atk", "defense" to "Def",
+                        "special-attack" to "SAtk", "special-defense" to "SDef" ,"defense" to "Def" ,"speed" to "Spd","hp" to "HP"
+                            )
                         for (i in 0..5) {
-                            val floatValue = pokemonViewModel.pokemonInfo.value!![0].stats[i].base_stat.toFloat() / 10
+                            val floatValue =
+                                pokemonViewModel.pokemonInfo.value!![0].stats[i].base_stat.toFloat() / 10
                             Column(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.SpaceEvenly
                             ) {
-                            Row(modifier = Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center,){
-                                Text(
+                                Row(
                                     modifier = Modifier
-                                        .fillMaxWidth(0.23f)
-                                        .align(Alignment.CenterVertically),
-                                    text = pokemonViewModel.pokemonInfo.value!![0].stats[i].stat.name.toString().replace("special","Spl",ignoreCase = true),
-                                    fontFamily = interFontFamily, textAlign = TextAlign.Center,
-                                    fontWeight = FontWeight.ExtraLight, fontSize = 12.sp, overflow = TextOverflow.Visible
-                                )
-                                Text(
-                                    modifier = Modifier.align(Alignment.CenterVertically),
-                                    text = pokemonViewModel.pokemonInfo.value!![0].stats[i].base_stat.toString(),
-                                    fontFamily = interFontFamily,
-                                    fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,overflow = TextOverflow.Ellipsis
-                                )
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.CenterVertically)
-                                        .padding(12.dp)
-                                        .clip(RoundedCornerShape(15.dp))
-                                        .height(10.dp)
-                                        .background(ProgressIndicatorDefaults.linearTrackColor)
-                                        .width(240.dp)
+                                        .fillMaxWidth()
+                                        .horizontalScroll(
+                                            rememberScrollState()
+                                        ),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceAround,
                                 ) {
-                                    Log.i("FLOAT VALUE",floatValue.toString())
+                                    Text(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(5.dp)
+                                            .align(Alignment.CenterVertically),
+                                        text =
+                                            dict[pokemonViewModel.pokemonInfo.value!![0].stats[i].stat.name]!!
+                                        ,
+                                        fontFamily = interFontFamily,
+                                        textAlign = TextAlign.Start,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 12.sp,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(7.dp)
+                                            .align(Alignment.CenterVertically),
+                                        text = pokemonViewModel.pokemonInfo.value!![0].stats[i].base_stat.toString(),
+                                        fontFamily = interFontFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        textAlign = TextAlign.Start,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
                                     Box(
                                         modifier = Modifier
+
+                                            .align(Alignment.CenterVertically)
                                             .clip(RoundedCornerShape(15.dp))
                                             .height(10.dp)
-                                            .background(
-                                                ProgressIndicatorDefaults.linearColor
-                                            )
-                                            .width(240.dp * (floatValue / 10))
-                                    )
+                                            .background(ProgressIndicatorDefaults.linearTrackColor)
+                                            .width(240.dp)
+                                    ) {
+                                        Log.i("FLOAT VALUE", floatValue.toString())
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(15.dp))
+                                                .height(10.dp)
+                                                .background(
+                                                    ProgressIndicatorDefaults.linearColor
+                                                )
+                                                .width(240.dp * (floatValue / 10))
+                                        )
+                                    }
                                 }
-                            }
-
                             }
 
                         }
@@ -919,7 +978,6 @@ private fun CardContent(
         }
     }
 }
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
