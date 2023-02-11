@@ -85,7 +85,7 @@ import kotlin.Comparator
 
 private lateinit var sortedList: List<Result>
 
-//private lateinit var pokemonViewModel: PokemonViewModel
+// Need to work on abilities screen
 private val interFontFamily = FontFamily(
     Font(R.font.inter, FontWeight.Light)
 )
@@ -113,9 +113,6 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Log.i("POKEMON: ", pokemonViewModel.items.value.toString())
-//                    PokemonGreeting(pokemonViewModel)
-//                      PokemonInformationScreen(no = "1")
-//                    fetchPokemonInformation(pokemonViewModel,"1")
                     val navController = rememberNavController()
                     NavHost(navController, startDestination = "splash") {
                         composable(route = "splash") {
@@ -196,11 +193,10 @@ private fun InfoScreen() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            //https://gdurl.com/OQTe
-            //https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/25.png
+            //Image may not load in JIO net should change private dns to one.one.one.one in android phones
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data("https://gdurl.com/OQTe")
+                    .data("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/25.png")
                     .decoderFactory(SvgDecoder.Factory())
                     .build(),
                 contentDescription = null,
@@ -217,14 +213,6 @@ private fun InfoScreen() {
                     label = { Text("Lightning") },
                     Modifier
                         .padding(2.dp),
-//                    leadingIcon = {
-//                        Icon(
-//                            painterResource(id = R.drawable.thunder),
-//                            contentDescription = "Localized description",
-//                            Modifier.width(18.dp)
-//
-//                        )
-//                    },
                     shape = RoundedCornerShape(50),
                 )
             }
@@ -477,11 +465,7 @@ private fun fetchPokemonSpeciesInformation(
             response: Response<PokemonSpeciesInfo>
         ) {
             Log.i("POKE SPECIES RESPONSE: ", response.toString())
-
-
             println("RESULTS")
-//            Log.i("SPECIES DATA: ", pokeSpeciesData.name)
-//            Log.i("POKEMON DESC: ", pokeSpeciesData.flavor_text_entries[0].flavor_text.toString())
             if (response.code() != 404) {
                 val pokeSpeciesData = response.body()!!
                 pokemonViewModel.updatePokemonSpeciesDetails(
@@ -663,14 +647,6 @@ fun PokemonInformationScreen(
                         label = { Text(pokemon.type.name.capitalize()) },
                         Modifier
                             .padding(2.dp),
-//                    leadingIcon = {
-//                        Icon(
-//                            painterResource(id = R.drawable.thunder),
-//                            contentDescription = "Localized description",
-//                            Modifier.width(18.dp)
-//
-//                        )
-//                    },
                         shape = RoundedCornerShape(50),
                     )
                 }
@@ -1046,11 +1022,6 @@ fun PokemonGreeting(pokemonViewModel: PokemonViewModel, navController: NavContro
             },
         )
         Log.i("IN DROPDOWN: ", pokemonViewModel.items.value!!.toString())
-//        FilterMenu()
-
-//        IconButton(onClick = { expandedSort = !expandedSort}) {
-//            Icon(painterResource(id = R.drawable.ic_filter_list), contentDescription = null)
-//        }
 
 
         if (!expandedSort) {
@@ -1114,13 +1085,6 @@ fun SplashActivity(pokemonViewModel: PokemonViewModel, navController: NavControl
 @Composable
 fun DefaultPreview() {
     PokeDEXTheme {
-//        SearchContent(Modifier)
-//        PokemonGreeting("Android")
-//        SplashActivity()
-//        FilterMenu()
         InfoScreen()
-//        PokemonInformationScreen(modifier = Modifier.fillMaxSize())
-//        CardContent(name = "demo", pokeURL = "google.com", pokemonViewModel = , navController = NavController(this@MainActivity))
-//        DemoCardContent()
     }
 }
