@@ -1,29 +1,26 @@
 package apps.cooper.pokedex
 
-import android.os.Build
+import android.app.Activity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.*
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.TextField
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.twotone.Person
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 //import androidx.compose.runtime.saveable.rememberSaveable
@@ -45,7 +42,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import apps.cooper.pokedex.ui.theme.PokeDEXTheme
-import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
@@ -57,31 +53,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.LifecycleOwner
 import apps.cooper.pokedex.models.*
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import java.lang.Math.floor
 import java.net.URLDecoder
-import java.net.URLEncoder
 import java.util.*
-import kotlin.Comparator
 
 private lateinit var sortedList: List<Result>
 
@@ -128,7 +115,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable(route = "greet") {
-                            PokemonGreeting(pokemonViewModel = pokemonViewModel, navController)
+                            PokemonHomeScreen(pokemonViewModel = pokemonViewModel, navController)
                         }
                     }
 
@@ -367,8 +354,14 @@ private fun InfoScreen() {
 //                            progress = animatedProgress,
 //                        )
 //                      The below examples describes the use of custom linear indicator
-                        val dict = mapOf("attack" to "Atk", "defense" to "Def",
-                            "special-attack" to "SAtk", "special-defense" to "SDef" ,"defense" to "Def" ,"speed" to "Spd","hp" to "HP"
+                        val dict = mapOf(
+                            "attack" to "Atk",
+                            "defense" to "Def",
+                            "special-attack" to "SAtk",
+                            "special-defense" to "SDef",
+                            "defense" to "Def",
+                            "speed" to "Spd",
+                            "hp" to "HP"
                         )
                         for (i in 1..6) {
 //                            val floatValue =
@@ -439,7 +432,7 @@ private fun InfoScreen() {
                     }
                 }
                 if (state == 2) {
-                    CardContentAbilities(name = "", pokeURL = "")
+                    PokemonAbilitiesScreen(name = "", pokeURL = "")
                 }
 
             }
@@ -448,7 +441,7 @@ private fun InfoScreen() {
 }
 
 @Composable
-fun CardContentAbilities(name: String, pokeURL: String) {
+fun PokemonAbilitiesScreen(name: String, pokeURL: String) {
 
 }
 
@@ -534,6 +527,7 @@ private fun fetchPokemonSpeciesInformation(
                 pokemonViewModel.pokemonSpeciesInfo.value!![0].names.toString()
             )
             navController.navigate("info/$no")
+            pokemonViewModel.currentCardClickState.value = true
         }
 
         override fun onFailure(call: Call<PokemonSpeciesInfo>, t: Throwable) {
@@ -691,129 +685,30 @@ fun PokemonInformationScreen(
                 }
 
                 if (state == 0) {
-                    for (i in pokemonViewModel.pokemonSpeciesInfo.value!![0].flavor_text_entries) {
-                        val string = URLDecoder.decode(i.flavor_text, "utf-8")
-                        Log.i("ENCSTR", string)
-                        if (i.language.name == "en") {
-                            Log.i("TEXT", i.flavor_text.toString())
-                            Text(
-                                modifier = Modifier
-                                    .padding(12.dp)
-                                    .fillMaxWidth(),
-
-                                text = i.flavor_text,
-                                overflow = TextOverflow.Clip,
-
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold,
-                            )
-                            break
-                        }
-                    }
-
-                    ElevatedCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp)
-                            .padding(12.dp)
-                    ) {
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Column() {
-                                val weight =
-                                    pokemonViewModel.pokemonInfo.value!![0].weight.toFloat() / 10
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center,
-                                    modifier = Modifier.fillMaxWidth(0.5f)
-                                ) {
-                                    Icon(
-                                        painterResource(id = R.drawable.ic_weight),
-                                        contentDescription = "Weight",
-                                        Modifier.size(24.dp)
-                                    )
-                                    Text(
-                                        "$weight kg (${floor(weight * 2.205)} lbs)",
-                                        fontFamily = interFontFamily,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 12.sp,
-                                    )
-                                }
-                                Text(
-                                    "Weight",
-                                    fontFamily = interFontFamily,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 12.sp,
-                                    modifier = Modifier.fillMaxWidth(
-                                        0.5f
-                                    ),
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-
-                            Divider(
-                                color = Color.LightGray,
-                                modifier = Modifier
-                                    .padding(start = 6.dp)
-                                    .fillMaxHeight()
-                                    .width(1.dp),
-
-
-                                )
-
-                            Column() {
-                                val height =
-                                    pokemonViewModel.pokemonInfo.value!![0].height.toFloat() / 10
-                                val calc = 100 * height / 2.54
-                                val feet = kotlin.math.floor(calc / 12)
-                                val inches = floor(calc - (12 * feet))
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Icon(
-                                        painterResource(id = R.drawable.ic_height),
-                                        contentDescription = "Height",
-                                        Modifier.size(24.dp)
-                                    )
-                                    Text(
-                                        "$height m (${feet}' ${inches}'')",
-                                        fontFamily = interFontFamily,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 12.sp
-                                    )
-                                }
-                                Text(
-                                    "Height",
-                                    fontFamily = interFontFamily,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 12.sp,
-                                    modifier = Modifier.fillMaxWidth(
-                                        1f
-                                    ),
-                                    textAlign = TextAlign.Center
-                                )
-
-
-                            }
-
-                        }
-                    }
+                    PokemonAboutScreen(pokemonViewModel)
                 }
                 if (state == 1) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
+                    PokemonStatScreen(pokemonViewModel)
+                }
+                if (state == 2) {
+                    PokemonAbilitiesScreen(name = "", pokeURL = "")
+                }
+
+            }
+        }
+    }
+
+}
+
+@Composable
+fun PokemonStatScreen(pokemonViewModel: PokemonViewModel) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
 //                        The linear progress indicator will be worked upon since it doesn't have documentation on how to have rounded corners in progress indicators
 //                        LinearProgressIndicator(
 //                            modifier = Modifier
@@ -825,85 +720,199 @@ fun PokemonInformationScreen(
 //                            progress = animatedProgress,
 //                        )
 //                      The below examples describes the use of custom linear indicator
-                        val dict = mapOf("attack" to "Atk", "defense" to "Def",
-                        "special-attack" to "SAtk", "special-defense" to "SDef" ,"defense" to "Def" ,"speed" to "Spd","hp" to "HP"
-                            )
-                        for (i in 0..5) {
-                            val floatValue =
-                                pokemonViewModel.pokemonInfo.value!![0].stats[i].base_stat.toFloat() / 10
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.SpaceEvenly
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .horizontalScroll(
-                                            rememberScrollState()
-                                        ),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceAround,
-                                ) {
-                                    Text(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(5.dp)
-                                            .align(Alignment.CenterVertically),
-                                        text =
-                                            dict[pokemonViewModel.pokemonInfo.value!![0].stats[i].stat.name]!!
-                                        ,
-                                        fontFamily = interFontFamily,
-                                        textAlign = TextAlign.Start,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 12.sp,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Text(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(7.dp)
-                                            .align(Alignment.CenterVertically),
-                                        text = pokemonViewModel.pokemonInfo.value!![0].stats[i].base_stat.toString(),
-                                        fontFamily = interFontFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        textAlign = TextAlign.Start,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Box(
-                                        modifier = Modifier
+        val dict = mapOf(
+            "attack" to "Atk",
+            "defense" to "Def",
+            "special-attack" to "SAtk",
+            "special-defense" to "SDef",
+            "defense" to "Def",
+            "speed" to "Spd",
+            "hp" to "HP"
+        )
+        for (i in 0..5) {
+            val floatValue =
+                pokemonViewModel.pokemonInfo.value!![0].stats[i].base_stat.toFloat() / 10
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(
+                            rememberScrollState()
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceAround,
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(5.dp)
+                            .align(Alignment.CenterVertically),
+                        text =
+                        dict[pokemonViewModel.pokemonInfo.value!![0].stats[i].stat.name]!!,
+                        fontFamily = interFontFamily,
+                        textAlign = TextAlign.Start,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(7.dp)
+                            .align(Alignment.CenterVertically),
+                        text = pokemonViewModel.pokemonInfo.value!![0].stats[i].base_stat.toString(),
+                        fontFamily = interFontFamily,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Start,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Box(
+                        modifier = Modifier
 
-                                            .align(Alignment.CenterVertically)
-                                            .clip(RoundedCornerShape(15.dp))
-                                            .height(10.dp)
-                                            .background(ProgressIndicatorDefaults.linearTrackColor)
-                                            .width(240.dp)
-                                    ) {
-                                        Log.i("FLOAT VALUE", floatValue.toString())
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(15.dp))
-                                                .height(10.dp)
-                                                .background(
-                                                    ProgressIndicatorDefaults.linearColor
-                                                )
-                                                .width(240.dp * (floatValue / 10))
-                                        )
-                                    }
-                                }
-                            }
-
-                        }
+                            .align(Alignment.CenterVertically)
+                            .clip(RoundedCornerShape(15.dp))
+                            .height(10.dp)
+                            .background(ProgressIndicatorDefaults.linearTrackColor)
+                            .width(240.dp)
+                    ) {
+                        Log.i("FLOAT VALUE", floatValue.toString())
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(15.dp))
+                                .height(10.dp)
+                                .background(
+                                    ProgressIndicatorDefaults.linearColor
+                                )
+                                .width(240.dp * (floatValue / 10))
+                        )
                     }
                 }
-                if (state == 2) {
-                    CardContentAbilities(name = "", pokeURL = "")
-                }
-
             }
+
+        }
+    }
+}
+
+@Composable
+fun PokemonAboutScreen(pokemonViewModel: PokemonViewModel) {
+    for (i in pokemonViewModel.pokemonSpeciesInfo.value!![0].flavor_text_entries) {
+        val string = URLDecoder.decode(i.flavor_text, "utf-8")
+        Log.i("ENCSTR", string)
+        if (i.language.name == "en") {
+            Log.i("TEXT", i.flavor_text.toString())
+            Text(
+                modifier = Modifier
+                    .padding(12.dp)
+                    .fillMaxWidth(),
+
+                text = i.flavor_text,
+                overflow = TextOverflow.Clip,
+
+                style = MaterialTheme.typography.bodyLarge,
+                fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold,
+            )
+            break
         }
     }
 
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .padding(12.dp)
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column() {
+                val weight =
+                    pokemonViewModel.pokemonInfo.value!![0].weight.toFloat() / 10
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth(0.5f)
+                ) {
+                    Icon(
+                        painterResource(id = R.drawable.ic_weight),
+                        contentDescription = "Weight",
+                        Modifier.size(24.dp)
+                    )
+                    Text(
+                        "$weight kg (${floor(weight * 2.205)} lbs)",
+                        fontFamily = interFontFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp,
+                    )
+                }
+                Text(
+                    "Weight",
+                    fontFamily = interFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 12.sp,
+                    modifier = Modifier.fillMaxWidth(
+                        0.5f
+                    ),
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            Divider(
+                color = Color.LightGray,
+                modifier = Modifier
+                    .padding(start = 6.dp)
+                    .fillMaxHeight()
+                    .width(1.dp),
+
+
+                )
+
+            Column() {
+                val height =
+                    pokemonViewModel.pokemonInfo.value!![0].height.toFloat() / 10
+                val calc = 100 * height / 2.54
+                val feet = kotlin.math.floor(calc / 12)
+                val inches = floor(calc - (12 * feet))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        painterResource(id = R.drawable.ic_height),
+                        contentDescription = "Height",
+                        Modifier.size(24.dp)
+                    )
+                    Text(
+                        "$height m (${feet}' ${inches}'')",
+                        fontFamily = interFontFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp
+                    )
+                }
+                Text(
+                    "Height",
+                    fontFamily = interFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 12.sp,
+                    modifier = Modifier.fillMaxWidth(
+                        1f
+                    ),
+                    textAlign = TextAlign.Center
+                )
+
+
+            }
+
+        }
+    }
 }
 
 @Composable
@@ -911,14 +920,35 @@ private fun CardContent(
     name: String,
     pokeURL: String,
     pokemonViewModel: PokemonViewModel,
-    navController: NavController
+    navController: NavController,
+    click : Boolean
 ) {
-
+    val context = LocalContext.current
+    var loadState by remember { mutableStateOf(false) }
+//    var clickState by remember { mutableStateOf(click) }
+//    val cardStateObserver = androidx.lifecycle.Observer<Boolean>{cardState ->
+//        click = cardState
+//    }
+//    pokemonViewModel.currentCardClickState.observe(context,cardStateObserver)
     ElevatedCard(
-        Modifier
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier
             .fillMaxWidth()
             .height(85.dp)
             .padding(12.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = rememberRipple(),
+                enabled = click
+            ) {
+                loadState = !loadState
+//                clickState = !clickState
+                pokemonViewModel.currentCardClickState.value = false
+                Log.i("VIEWMODEL CLICK VALUE", pokemonViewModel.currentCardClickState.value!!.toString())
+                //                if (loadState) clickState = false else clickState = !clickState
+                formatPokemonInformation(pokemonViewModel, navController, pokeURL)
+            },
     ) {
         Row(
             modifier = Modifier
@@ -930,23 +960,21 @@ private fun CardContent(
             Text(name, fontFamily = interFontFamily, fontWeight = FontWeight.ExtraBold)
             Row() {
                 IconButton(
+                    enabled = if (loadState) false else true,
                     onClick = {
                         Log.i("POKEMON URI: ", pokeURL)
-
-                        val lstValues: List<String> = pokeURL.split("/").map { it -> it.trim() }
-                        Log.i("LST VALUES", lstValues.toString())
-                        Log.i("URL LIST POKE NO", lstValues[6].trim().toString())
-                        fetchPokemonInformation(
-                            pokemonViewModel,
-                            lstValues[6].trim(),
-                            navController
-                        )
+                        loadState = true
+                        formatPokemonInformation(pokemonViewModel, navController, pokeURL)
                     }
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowRight,
-                        contentDescription = "Click here"
-                    )
+                    if (loadState) {
+                        CircularProgressIndicator(modifier = Modifier.size(30.dp))
+                    } else {
+                        Icon(
+                            imageVector = Icons.Filled.KeyboardArrowRight,
+                            contentDescription = "Click here"
+                        )
+                    }
                 }
 
             }
@@ -955,14 +983,34 @@ private fun CardContent(
     }
 }
 
+private fun formatPokemonInformation(
+    pokemonViewModel: PokemonViewModel,
+    navController: NavController,
+    pokeURL: String
+) {
+    val lstValues: List<String> = pokeURL.split("/").map { it -> it.trim() }
+    Log.i("LST VALUES", lstValues.toString())
+    Log.i("URL LIST POKE NO", lstValues[6].trim().toString())
+    fetchPokemonInformation(
+        pokemonViewModel,
+        lstValues[6].trim(),
+        navController
+    )
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PokemonGreeting(pokemonViewModel: PokemonViewModel, navController: NavController) {
+fun PokemonHomeScreen(pokemonViewModel: PokemonViewModel, navController: NavController) {
+    val context = LocalContext.current
     var inputText by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
     }
     var expandedSort by remember { mutableStateOf(false) }
+    val activity = context as Activity
+    BackHandler {
+        activity.finish()
+    }
     Column {
         TextField(
             value = inputText,
@@ -1022,33 +1070,46 @@ fun PokemonGreeting(pokemonViewModel: PokemonViewModel, navController: NavContro
             },
         )
         Log.i("IN DROPDOWN: ", pokemonViewModel.items.value!!.toString())
-
+        val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
+        var click by remember { mutableStateOf(pokemonViewModel.currentCardClickState.value!!) }
+        val cardStateObserver = androidx.lifecycle.Observer<Boolean> { cardState ->
+            click = cardState
+            println("CLICK STATE: $click")
+        }
+        pokemonViewModel.currentCardClickState.observe(lifecycleOwner,cardStateObserver)
 
         if (!expandedSort) {
             LazyColumn(modifier = Modifier.padding(vertical = 8.dp)) {
                 items(items = pokemonViewModel.items.value!!.filter {
                     it.name.contains(inputText.text, ignoreCase = true)
                 }.sortedBy { it.name }, key = { it.url }) { pokemon ->
-
                     CardContent(
                         name = pokemon.name,
                         pokeURL = pokemon.url,
                         pokemonViewModel,
-                        navController
+                        navController,
+                        click
                     )
                 }
             }
         } else {
-            LazyColumn(modifier = Modifier.padding(vertical = 8.dp)) {
-                items(items = pokemonViewModel.items.value!!.filter {
-                    it.name.contains(inputText.text, ignoreCase = true)
-                }.sortedByDescending { it.name }, key = { it.url }) { pokemon ->
+            LazyColumn(
+                modifier = Modifier.padding(vertical = 8.dp)
+
+            ) {
+                items(
+                    items = pokemonViewModel.items.value!!.filter {
+                        it.name.contains(inputText.text, ignoreCase = true)
+                    }.sortedByDescending { it.name },
+                    key = { it.url },
+                ) { pokemon ->
 
                     CardContent(
                         name = pokemon.name,
                         pokeURL = pokemon.url,
                         pokemonViewModel,
-                        navController
+                        navController,
+                        click
                     )
                 }
             }
