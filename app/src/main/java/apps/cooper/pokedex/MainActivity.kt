@@ -1,9 +1,9 @@
 package apps.cooper.pokedex
 
 import android.app.Activity
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -11,61 +11,54 @@ import androidx.activity.viewModels
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material3.TextField
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
-//import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import apps.cooper.pokedex.models.*
 import apps.cooper.pokedex.ui.theme.PokeDEXTheme
+import coil.compose.AsyncImage
+import coil.decode.SvgDecoder
+import coil.request.ImageRequest
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import androidx.compose.material3.Text
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.LifecycleOwner
-import apps.cooper.pokedex.models.*
-import coil.compose.AsyncImage
-import coil.decode.SvgDecoder
-import coil.request.ImageRequest
 import java.lang.Math.floor
 import java.net.URLDecoder
 import java.util.*
@@ -442,7 +435,23 @@ private fun InfoScreen() {
 
 @Composable
 fun PokemonAbilitiesScreen(name: String, pokeURL: String) {
-
+    val abilityLoadState by remember { mutableStateOf(false) }
+    Column(
+        modifier = if (abilityLoadState)
+            Modifier
+                .fillMaxWidth()
+                .fillMaxHeight().background(Color.Blue)
+                .padding(8.dp)
+        else
+            Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .padding(8.dp, top = 120.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        CircularProgressIndicator(modifier = Modifier.size(30.dp))
+    }
 }
 
 private fun fetchPokemonSpeciesInformation(
@@ -595,6 +604,7 @@ fun PokemonInformationScreen(
     var state by remember { mutableStateOf(0) }
     val titles = listOf("About", "Stats", "Abilities", "Evolution", "Location")
     val progress by remember { mutableStateOf(0.6f) }
+    val context = LocalContext.current
 
 
     Log.i("Pokemon ID: ", pokemonID)
@@ -636,10 +646,20 @@ fun PokemonInformationScreen(
                 horizontalArrangement = Arrangement.Center
             ) {
                 for (pokemon in pokemonViewModel.pokemonInfo.value!![0].types) {
+                    val uri: String = "@drawable/${pokemon.type.name}"
+                    val resource: Int = context.resources
+                        .getIdentifier(uri, null, context.packageName)
                     AssistChip(
                         onClick = { /* Do something! */ },
                         label = { Text(pokemon.type.name.capitalize()) },
-                        Modifier
+                        leadingIcon = {
+                            Image(
+                                painterResource(id = resource),
+                                contentDescription = "attr-image",
+                                modifier = Modifier.size(24.dp)
+                            )
+                        },
+                        modifier = Modifier
                             .padding(2.dp),
                         shape = RoundedCornerShape(50),
                     )
@@ -649,7 +669,7 @@ fun PokemonInformationScreen(
             //End of Pokemon Image Name and Attribute
 
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -671,6 +691,7 @@ fun PokemonInformationScreen(
                     divider = {}) {
                     titles.forEachIndexed { index, title ->
                         Tab(
+                            modifier = modifier.fillMaxSize(),
                             selected = state == index,
                             onClick = { state = index },
                             text = {
@@ -719,7 +740,7 @@ fun PokemonStatScreen(pokemonViewModel: PokemonViewModel) {
 //                                ),
 //                            progress = animatedProgress,
 //                        )
-//                      The below examples describes the use of custom linear indicator
+//      The below examples describes the use of custom linear indicator
         val dict = mapOf(
             "attack" to "Atk",
             "defense" to "Def",
@@ -804,14 +825,16 @@ fun PokemonAboutScreen(pokemonViewModel: PokemonViewModel) {
         Log.i("ENCSTR", string)
         if (i.language.name == "en") {
             Log.i("TEXT", i.flavor_text.toString())
+            val text = i.flavor_text.replace("\n", " ")
+            Log.i("VIJ07", text)
             Text(
                 modifier = Modifier
                     .padding(12.dp)
                     .fillMaxWidth(),
 
-                text = i.flavor_text,
+                text = text,
                 overflow = TextOverflow.Clip,
-
+                textAlign = TextAlign.Justify,
                 style = MaterialTheme.typography.bodyLarge,
                 fontFamily = interFontFamily, fontWeight = FontWeight.SemiBold,
             )
@@ -921,7 +944,7 @@ private fun CardContent(
     pokeURL: String,
     pokemonViewModel: PokemonViewModel,
     navController: NavController,
-    click : Boolean
+    click: Boolean
 ) {
     val context = LocalContext.current
     var loadState by remember { mutableStateOf(false) }
@@ -945,7 +968,10 @@ private fun CardContent(
                 loadState = !loadState
 //                clickState = !clickState
                 pokemonViewModel.currentCardClickState.value = false
-                Log.i("VIEWMODEL CLICK VALUE", pokemonViewModel.currentCardClickState.value!!.toString())
+                Log.i(
+                    "VIEWMODEL CLICK VALUE",
+                    pokemonViewModel.currentCardClickState.value!!.toString()
+                )
                 //                if (loadState) clickState = false else clickState = !clickState
                 formatPokemonInformation(pokemonViewModel, navController, pokeURL)
             },
@@ -960,11 +986,11 @@ private fun CardContent(
             Text(name, fontFamily = interFontFamily, fontWeight = FontWeight.ExtraBold)
             Row() {
                 IconButton(
-                    enabled = if (loadState) false else true,
+                    enabled = false,
                     onClick = {
-                        Log.i("POKEMON URI: ", pokeURL)
-                        loadState = true
-                        formatPokemonInformation(pokemonViewModel, navController, pokeURL)
+//                        Log.i("POKEMON URI: ", pokeURL)
+//                        loadState = true
+//                        formatPokemonInformation(pokemonViewModel, navController, pokeURL)
                     }
                 ) {
                     if (loadState) {
@@ -1076,7 +1102,7 @@ fun PokemonHomeScreen(pokemonViewModel: PokemonViewModel, navController: NavCont
             click = cardState
             println("CLICK STATE: $click")
         }
-        pokemonViewModel.currentCardClickState.observe(lifecycleOwner,cardStateObserver)
+        pokemonViewModel.currentCardClickState.observe(lifecycleOwner, cardStateObserver)
 
         if (!expandedSort) {
             LazyColumn(modifier = Modifier.padding(vertical = 8.dp)) {
