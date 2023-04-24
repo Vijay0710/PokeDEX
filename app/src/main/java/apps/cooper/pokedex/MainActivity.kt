@@ -31,6 +31,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -336,7 +337,7 @@ private fun InfoScreen() {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-//                        The linear progress indicator will be worked upon since it doesn't have documentation on how to have rounded corners in progress indicators
+                        //                                                The linear progress indicator will be worked upon since it doesn't have documentation on how to have rounded corners in progress indicators
 //                        LinearProgressIndicator(
 //                            modifier = Modifier
 //                                .padding(12.dp)
@@ -357,7 +358,7 @@ private fun InfoScreen() {
                             "hp" to "HP"
                         )
                         for (i in 1..6) {
-//                            val floatValue =
+                            //                            val floatValue =
 //                                100/10
 //                            Column(
 //                                modifier = Modifier.fillMaxWidth(),
@@ -420,7 +421,6 @@ private fun InfoScreen() {
 //                                    }
 //                                }
 //                            }
-
                         }
                     }
                 }
@@ -440,7 +440,7 @@ fun PokemonAbilitiesScreen(name: String, pokeURL: String) {
         modifier = if (abilityLoadState)
             Modifier
                 .fillMaxWidth()
-                .fillMaxHeight().background(Color.Blue)
+                .fillMaxHeight()
                 .padding(8.dp)
         else
             Modifier
@@ -611,68 +611,63 @@ fun PokemonInformationScreen(
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(),
+            .fillMaxHeight()
     ) {
         //This code part contains Pokemon Image Name and Attribute
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            //https://gdurl.com/OQTe
-            //https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/25.png
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data("https://raw.githubusercontent.com/Vijay0710/poke-images/main/sprites/pokemon/other/home/$pokemonID.png")
-                    .decoderFactory(SvgDecoder.Factory())
-                    .build(),
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(12.dp)
-                    .size(300.dp),
-                alignment = Alignment.Center,
-            )
-            Text(
-                pokemonViewModel.pokemonInfo.value!![0].name,
-                fontFamily = interFontFamily,
-                fontWeight = FontWeight.SemiBold
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())){
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                for (pokemon in pokemonViewModel.pokemonInfo.value!![0].types) {
-                    val uri: String = "@drawable/${pokemon.type.name}"
-                    val resource: Int = context.resources
-                        .getIdentifier(uri, null, context.packageName)
-                    AssistChip(
-                        onClick = { /* Do something! */ },
-                        label = { Text(pokemon.type.name.capitalize()) },
-                        leadingIcon = {
-                            Image(
-                                painterResource(id = resource),
-                                contentDescription = "attr-image",
-                                modifier = Modifier.size(24.dp)
-                            )
-                        },
-                        modifier = Modifier
-                            .padding(2.dp),
-                        shape = RoundedCornerShape(50),
-                    )
+                //https://gdurl.com/OQTe
+                //https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/25.png
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data("https://raw.githubusercontent.com/Vijay0710/poke-images/main/sprites/pokemon/other/home/$pokemonID.png")
+                        .decoderFactory(SvgDecoder.Factory())
+                        .build(),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .size(300.dp),
+                    alignment = Alignment.Center,
+                )
+                Text(
+                    pokemonViewModel.pokemonInfo.value!![0].name,
+                    fontFamily = interFontFamily,
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    for (pokemon in pokemonViewModel.pokemonInfo.value!![0].types) {
+                        val uri: String = "@drawable/${pokemon.type.name}"
+                        val resource: Int = context.resources
+                            .getIdentifier(uri, null, context.packageName)
+                        AssistChip(
+                            onClick = { /* Do something! */ },
+                            label = { Text(pokemon.type.name.capitalize()) },
+                            leadingIcon = {
+                                Image(
+                                    painterResource(id = resource),
+                                    contentDescription = "attr-image",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            modifier = Modifier
+                                .padding(2.dp),
+                            shape = RoundedCornerShape(50),
+                        )
+                    }
                 }
             }
 
-            //End of Pokemon Image Name and Attribute
-
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
+            Column(){
                 ScrollableTabRow(
                     selectedTabIndex = state,
                     edgePadding = 0.dp,
@@ -685,7 +680,7 @@ fun PokemonInformationScreen(
                                 .background(
                                     color = MaterialTheme.colorScheme.primary,
                                     shape = RoundedCornerShape(8.dp)
-                                )
+                                ),
                         )
                     },
                     divider = {}) {
@@ -704,7 +699,6 @@ fun PokemonInformationScreen(
                         )
                     }
                 }
-
                 if (state == 0) {
                     PokemonAboutScreen(pokemonViewModel)
                 }
@@ -717,6 +711,9 @@ fun PokemonInformationScreen(
 
             }
         }
+
+
+        //End of Pokemon Image Name and Attribute
     }
 
 }
@@ -725,10 +722,9 @@ fun PokemonInformationScreen(
 fun PokemonStatScreen(pokemonViewModel: PokemonViewModel) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
     ) {
 //                        The linear progress indicator will be worked upon since it doesn't have documentation on how to have rounded corners in progress indicators
 //                        LinearProgressIndicator(
